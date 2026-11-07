@@ -10,8 +10,12 @@
 	}: WithElementRef<HTMLTableAttributes> = $props();
 </script>
 
-<div data-slot="table-container" class="relative w-full overflow-x-auto">
-	<table bind:this={ref} data-slot="table" class={cn("w-full caption-bottom text-sm", className)} {...restProps}>
-		{@render children?.()}
-	</table>
-</div>
+<!-- ha-data-table: 14px body text, 1.2 line height; cells inset by --cell-px (16px, 8px when narrow). -->
+<table
+	bind:this={ref}
+	data-slot="table"
+	class={cn("w-full border-collapse bg-table text-[length:var(--ha-font-size-m)] leading-[var(--ha-line-height-condensed)] tracking-[0.0178571429em] text-foreground [--cell-px:var(--ha-space-4)]", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</table>

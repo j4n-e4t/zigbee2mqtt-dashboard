@@ -1,129 +1,218 @@
 @import 'tailwindcss';
-@import "tw-animate-css";
-@import "shadcn-svelte/tailwind.css";
-@import "@fontsource-variable/inter";
+@import 'tw-animate-css';
+@import 'shadcn-svelte/tailwind.css';
+@import '@fontsource/roboto/latin-400.css';
+@import '@fontsource/roboto/latin-500.css';
 
-@custom-variant dark (&:is(.dark *));
+/* Dark mode follows Home Assistant's theme when embedded, the system otherwise (lib/home-assistant.ts). */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
+/*
+ * Home Assistant theme variables: HA's own defaults, taken from the frontend source
+ * (src/resources/theme/{core,typography}.globals.ts, color/{core,semantic,color}.globals.ts).
+ * When embedded in Home Assistant (same origin), lib/home-assistant.ts overwrites them
+ * inline with the live values of the active theme.
+ */
 :root {
-	--background: oklch(1 0 0);
-	--foreground: oklch(0.145 0 0);
-	--card: oklch(1 0 0);
-	--card-foreground: oklch(0.145 0 0);
-	--popover: oklch(1 0 0);
-	--popover-foreground: oklch(0.145 0 0);
-	--primary: oklch(0.205 0 0);
-	--primary-foreground: oklch(0.985 0 0);
-	--secondary: oklch(0.97 0 0);
-	--secondary-foreground: oklch(0.205 0 0);
-	--muted: oklch(0.97 0 0);
-	--muted-foreground: oklch(0.556 0 0);
-	--accent: oklch(0.97 0 0);
-	--accent-foreground: oklch(0.205 0 0);
-	--destructive: oklch(0.577 0.245 27.325);
-	--border: oklch(0.922 0 0);
-	--input: oklch(0.922 0 0);
-	--ring: oklch(0.708 0 0);
-	--chart-1: oklch(0.87 0 0);
-	--chart-2: oklch(0.556 0 0);
-	--chart-3: oklch(0.439 0 0);
-	--chart-4: oklch(0.371 0 0);
-	--chart-5: oklch(0.269 0 0);
-	--radius: 0.625rem;
-	--sidebar: oklch(0.985 0 0);
-	--sidebar-foreground: oklch(0.145 0 0);
-	--sidebar-primary: oklch(0.205 0 0);
-	--sidebar-primary-foreground: oklch(0.985 0 0);
-	--sidebar-accent: oklch(0.97 0 0);
-	--sidebar-accent-foreground: oklch(0.205 0 0);
-	--sidebar-border: oklch(0.922 0 0);
-	--sidebar-ring: oklch(0.708 0 0);
+	/* core */
+	--ha-space-1: 4px;
+	--ha-space-2: 8px;
+	--ha-space-3: 12px;
+	--ha-space-4: 16px;
+	--ha-space-6: 24px;
+	--ha-border-radius-sm: 4px;
+	--ha-border-radius-md: 8px;
+	--ha-border-radius-lg: 12px;
+	--ha-border-radius-xl: 16px;
+
+	/* typography */
+	--ha-font-family-body: Roboto, Noto, sans-serif;
+	--ha-font-size-xs: 10px;
+	--ha-font-size-s: 12px;
+	--ha-font-size-m: 14px;
+	--ha-font-size-l: 16px;
+	--ha-font-size-xl: 20px;
+	--ha-font-weight-normal: 400;
+	--ha-font-weight-medium: 500;
+	--ha-line-height-condensed: 1.2;
+	--ha-line-height-normal: 1.6;
+
+	/* colors (light) */
+	--primary-color: #009ac7;
+	--accent-color: #ff9800;
+	--primary-text-color: #141414;
+	--secondary-text-color: #5e5e5e;
+	--disabled-text-color: #bdbdbd;
+	--text-primary-color: #ffffff;
+	--primary-background-color: #fafafa;
+	--secondary-background-color: #e5e5e5;
+	--card-background-color: #ffffff;
+	--divider-color: rgba(0, 0, 0, 0.12);
+	--outline-color: rgba(0, 0, 0, 0.12);
+	--error-color: #db4437;
+	--warning-color: #ffa600;
+	--success-color: #43a047;
+	--info-color: #039be5;
+	--rgb-primary-color: 0, 154, 199;
+	--rgb-primary-text-color: 33, 33, 33;
+	--sidebar-background-color: var(--card-background-color);
+	--sidebar-text-color: var(--primary-text-color);
+	--sidebar-icon-color: rgba(var(--rgb-primary-text-color), 0.6);
+	--app-header-background-color: var(--sidebar-background-color);
+	--app-header-text-color: var(--sidebar-text-color);
+	--app-header-border-bottom: 1px solid var(--divider-color);
+	--header-height: 56px;
+	--data-table-background-color: var(--card-background-color);
+	--scrollbar-thumb-color: rgb(194, 194, 194);
+
+	/* semantic (labels, inputs) */
+	--ha-color-border-neutral-quiet: #e6e6e6;
+	--ha-color-border-neutral-normal: #989898;
+	--ha-color-placeholder: #989898;
+	--ha-color-fill-danger-quiet-resting: #fff0ef;
+	--ha-color-on-danger-normal: #b30532;
+	--ha-color-fill-warning-quiet-resting: #fff0e4;
+	--ha-color-on-warning-normal: #9d3800;
+	--ha-color-fill-primary-quiet-resting: #eff9fe;
+	--ha-color-on-primary-normal: #009ac7;
+	--ha-color-fill-neutral-quiet-resting: #f3f3f3;
+	--ha-color-on-neutral-normal: #5e5e5e;
+}
+:root[data-theme='dark'] {
+	--primary-color: #009ac7;
+	--primary-text-color: #e1e1e1;
+	--secondary-text-color: #9b9b9b;
+	--disabled-text-color: #6f6f6f;
+	--primary-background-color: #111111;
+	--secondary-background-color: #282828;
+	--card-background-color: #1c1c1c;
+	--divider-color: rgba(225, 225, 225, 0.12);
+	--outline-color: rgba(225, 225, 225, 0.12);
+	--rgb-primary-text-color: 225, 225, 225;
+	--scrollbar-thumb-color: rgb(110, 110, 110);
+
+	--ha-color-border-neutral-quiet: #5e5e5e;
+	--ha-color-border-neutral-normal: #7a7a7a;
+	--ha-color-placeholder: #989898;
+	--ha-color-fill-danger-quiet-resting: #2a040b;
+	--ha-color-on-danger-normal: #f3676c;
+	--ha-color-fill-warning-quiet-resting: #280700;
+	--ha-color-on-warning-normal: #f36d00;
+	--ha-color-fill-primary-quiet-resting: #001721;
+	--ha-color-on-primary-normal: #37c8fd;
+	--ha-color-fill-neutral-quiet-resting: #141414;
+	--ha-color-on-neutral-normal: #989898;
 }
 
-.dark {
-	--background: oklch(0.145 0 0);
-	--foreground: oklch(0.985 0 0);
-	--card: oklch(0.205 0 0);
-	--card-foreground: oklch(0.985 0 0);
-	--popover: oklch(0.205 0 0);
-	--popover-foreground: oklch(0.985 0 0);
-	--primary: oklch(0.922 0 0);
-	--primary-foreground: oklch(0.205 0 0);
-	--secondary: oklch(0.269 0 0);
-	--secondary-foreground: oklch(0.985 0 0);
-	--muted: oklch(0.269 0 0);
-	--muted-foreground: oklch(0.708 0 0);
-	--accent: oklch(0.269 0 0);
-	--accent-foreground: oklch(0.985 0 0);
-	--destructive: oklch(0.704 0.191 22.216);
-	--border: oklch(1 0 0 / 10%);
-	--input: oklch(1 0 0 / 15%);
-	--ring: oklch(0.556 0 0);
-	--chart-1: oklch(0.87 0 0);
-	--chart-2: oklch(0.556 0 0);
-	--chart-3: oklch(0.439 0 0);
-	--chart-4: oklch(0.371 0 0);
-	--chart-5: oklch(0.269 0 0);
-	--sidebar: oklch(0.205 0 0);
-	--sidebar-foreground: oklch(0.985 0 0);
-	--sidebar-primary: oklch(0.488 0.243 264.376);
-	--sidebar-primary-foreground: oklch(0.985 0 0);
-	--sidebar-accent: oklch(0.269 0 0);
-	--sidebar-accent-foreground: oklch(0.985 0 0);
-	--sidebar-border: oklch(1 0 0 / 10%);
-	--sidebar-ring: oklch(0.556 0 0);
+/* shadcn tokens, derived from the Home Assistant theme */
+:root {
+	--background: var(--primary-background-color);
+	--foreground: var(--primary-text-color);
+	--card: var(--card-background-color);
+	--card-foreground: var(--primary-text-color);
+	--popover: var(--card-background-color);
+	--popover-foreground: var(--primary-text-color);
+	--muted: var(--secondary-background-color);
+	--muted-foreground: var(--secondary-text-color);
+	--hover: rgba(var(--rgb-primary-text-color), 0.04);
+	--accent: var(--hover);
+	--accent-foreground: var(--primary-text-color);
+	--primary: var(--primary-color);
+	--primary-foreground: var(--text-primary-color);
+	--secondary: var(--secondary-background-color);
+	--secondary-foreground: var(--primary-text-color);
+	--destructive: var(--error-color);
+	--border: var(--divider-color);
+	--input: var(--ha-color-border-neutral-quiet);
+	--ring: var(--primary-color);
+	--radius: 8px;
 }
 
 @theme inline {
-	--font-sans: 'Inter Variable', sans-serif;
-	--color-sidebar-ring: var(--sidebar-ring);
-	--color-sidebar-border: var(--sidebar-border);
-	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-	--color-sidebar-accent: var(--sidebar-accent);
-	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-	--color-sidebar-primary: var(--sidebar-primary);
-	--color-sidebar-foreground: var(--sidebar-foreground);
-	--color-sidebar: var(--sidebar);
-	--color-chart-5: var(--chart-5);
-	--color-chart-4: var(--chart-4);
-	--color-chart-3: var(--chart-3);
-	--color-chart-2: var(--chart-2);
-	--color-chart-1: var(--chart-1);
-	--color-ring: var(--ring);
-	--color-input: var(--input);
-	--color-border: var(--border);
-	--color-destructive: var(--destructive);
-	--color-accent-foreground: var(--accent-foreground);
-	--color-accent: var(--accent);
-	--color-muted-foreground: var(--muted-foreground);
-	--color-muted: var(--muted);
-	--color-secondary-foreground: var(--secondary-foreground);
-	--color-secondary: var(--secondary);
-	--color-primary-foreground: var(--primary-foreground);
-	--color-primary: var(--primary);
-	--color-popover-foreground: var(--popover-foreground);
-	--color-popover: var(--popover);
-	--color-card-foreground: var(--card-foreground);
-	--color-card: var(--card);
-	--color-foreground: var(--foreground);
+	--font-sans: var(--ha-font-family-body);
 	--color-background: var(--background);
-	--radius-sm: calc(var(--radius) * 0.6);
-	--radius-md: calc(var(--radius) * 0.8);
-	--radius-lg: var(--radius);
-	--radius-xl: calc(var(--radius) * 1.4);
-	--radius-2xl: calc(var(--radius) * 1.8);
-	--radius-3xl: calc(var(--radius) * 2.2);
-	--radius-4xl: calc(var(--radius) * 2.6);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-destructive: var(--destructive);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-hover: var(--hover);
+	--color-error: var(--error-color);
+	--color-success: var(--success-color);
+	--color-warning: var(--warning-color);
+	--color-header: var(--app-header-background-color);
+	--color-header-foreground: var(--app-header-text-color);
+	--color-table: var(--data-table-background-color);
+	--color-icon: var(--sidebar-icon-color);
+	--radius-sm: var(--ha-border-radius-sm);
+	--radius-md: var(--ha-border-radius-md);
+	--radius-lg: var(--ha-border-radius-lg);
+	--radius-xl: var(--ha-border-radius-xl);
 }
 
 @layer base {
 	* {
-		@apply border-border outline-ring/50;
+		@apply border-border;
+		scrollbar-width: thin;
+		scrollbar-color: var(--scrollbar-thumb-color) transparent;
+	}
+	html,
+	body {
+		height: 100%;
 	}
 	body {
-		@apply bg-background text-foreground;
+		@apply m-0 bg-background font-sans text-foreground;
+		font-size: var(--ha-font-size-m);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
 	}
-	html {
-		@apply font-sans;
+	button:not(:disabled) {
+		cursor: pointer;
+	}
+}
+
+@layer components {
+	/* ha-label (dense): 20px chip, 1px outline, 12px medium text */
+	.ha-label {
+		display: inline-flex;
+		align-items: center;
+		height: 20px;
+		padding: 0 var(--ha-space-3);
+		border: 1px solid var(--outline-color);
+		border-radius: var(--ha-border-radius-md);
+		font-size: var(--ha-font-size-s);
+		font-weight: var(--ha-font-weight-medium);
+		line-height: var(--ha-line-height-condensed);
+		letter-spacing: 0.1px;
+		white-space: nowrap;
+		color: var(--primary-text-color);
+	}
+	.ha-label[data-tone='danger'] {
+		background: var(--ha-color-fill-danger-quiet-resting);
+		color: var(--ha-color-on-danger-normal);
+	}
+	.ha-label[data-tone='warning'] {
+		background: var(--ha-color-fill-warning-quiet-resting);
+		color: var(--ha-color-on-warning-normal);
+	}
+	.ha-label[data-tone='primary'] {
+		background: var(--ha-color-fill-primary-quiet-resting);
+		color: var(--ha-color-on-primary-normal);
+	}
+	.ha-label[data-tone='neutral'] {
+		background: var(--ha-color-fill-neutral-quiet-resting);
+		color: var(--ha-color-on-neutral-normal);
 	}
 }

@@ -1,17 +1,13 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
-		<title>Zigbee Devices</title>
+		<title>Zigbee devices</title>
 		<script>
-			(() => {
-				const mq = matchMedia('(prefers-color-scheme: dark)');
-				const apply = () => document.documentElement.classList.toggle('dark', mq.matches);
-				apply();
-				mq.addEventListener('change', apply);
-			})();
+			// Avoid a light flash before the app's theme sync (lib/home-assistant.svelte.ts) runs
+			if (matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.dataset.theme = 'dark';
 		</script>
 		<script src="%sveltekit.assets%/config.js"></script>
 		%sveltekit.head%

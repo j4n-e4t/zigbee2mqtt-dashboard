@@ -4,6 +4,9 @@ A custom, read-only frontend for [Zigbee2MQTT](https://www.zigbee2mqtt.io/) that
 official UI / Windfront. It connects from the browser to Z2M's frontend WebSocket API (`/api`), the
 same API the official frontend uses.
 
+Styled to look native to Home Assistant (HA theme variables, `ha-data-table` / `hass-subpage` metrics,
+Roboto, MDI icons); when embedded in HA on the same origin it follows the active HA theme.
+
 Current feature: a device table (image, name, vendor/model, IEEE/network address, type, power,
 firmware, status). Device images use the same sources as the official frontend:
 `definition.icon` → `zigbee2mqtt.io/images/devices/<model>.png` → vendor image → generic fallback.
