@@ -1,0 +1,21 @@
+# Local development stack: mock Zigbee2MQTT + the dashboard.
+#   docker compose up --build
+#   dashboard: http://localhost:8081   mock Z2M WebSocket: ws://localhost:8090/api
+services:
+  z2m-mock:
+    build: ./mock
+    ports:
+      - "8090:8080"
+    environment:
+      AUTH_TOKEN: ""   # set to test token auth; mirror it in Z2M_TOKEN below
+
+  dashboard:
+    build: ./web
+    ports:
+      - "8081:80"
+    environment:
+      # URL as reached by the *browser*, not by the container
+      Z2M_URL: "ws://localhost:8090/api"
+      Z2M_TOKEN: ""
+    depends_on:
+      - z2m-mock

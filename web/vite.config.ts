@@ -12,7 +12,8 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			adapter: adapter()
+			// SPA mode: everything is served from index.html
+			adapter: adapter({ fallback: 'index.html' })
 		})
 	]
 });

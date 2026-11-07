@@ -4,6 +4,16 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
+		<title>Zigbee Devices</title>
+		<script>
+			(() => {
+				const mq = matchMedia('(prefers-color-scheme: dark)');
+				const apply = () => document.documentElement.classList.toggle('dark', mq.matches);
+				apply();
+				mq.addEventListener('change', apply);
+			})();
+		</script>
+		<script src="%sveltekit.assets%/config.js"></script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
