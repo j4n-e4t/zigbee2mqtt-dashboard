@@ -23,4 +23,4 @@ EXPOSE 80
 LABEL io.hass.name="Zigbee2MQTT Dashboard" \
       io.hass.description="Home Assistant styled Zigbee2MQTT frontend" \
       io.hass.type="addon" \
-      io.hass.version="0.0.1"
+      io.hass.version="0.0.2"

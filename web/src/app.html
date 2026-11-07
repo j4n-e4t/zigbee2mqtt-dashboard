@@ -9,7 +9,7 @@
 			// Avoid a light flash before the app's theme sync (lib/home-assistant.svelte.ts) runs
 			if (matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.dataset.theme = 'dark';
 		</script>
-		<script src="%sveltekit.assets%/config.js"></script>
+		<script src="./config.js"></script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

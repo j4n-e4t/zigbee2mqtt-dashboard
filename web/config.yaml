@@ -1,5 +1,5 @@
 name: Zigbee2MQTT Dashboard
-version: "0.0.1"
+version: "0.0.2"
 slug: z2m_dashboard
 description: A Home Assistant styled alternative frontend for Zigbee2MQTT
 url: https://github.com/j4n-e4t/zigbee2mqtt-dashboard
