@@ -29,7 +29,7 @@ docker compose up --build
 # Option B: hot reload
 docker compose up -d z2m-mock
 cd web && pnpm install
-echo "window.__Z2M_CONFIG__ = { url: 'ws://localhost:8090/api', token: '' };" > static/config.js  # don't commit
+echo 'VITE_Z2M_URL=ws://localhost:8090/api' > .env.local   # gitignored; add VITE_Z2M_TOKEN=... if needed
 pnpm dev
 ```
 

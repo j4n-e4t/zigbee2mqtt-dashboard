@@ -17,13 +17,16 @@ export type Z2MConfig = {
 
 export function loadConfig(): Z2MConfig {
 	const raw = window.__Z2M_CONFIG__ ?? {};
+	// Dev convenience: VITE_Z2M_URL / VITE_Z2M_TOKEN (e.g. in web/.env.local) when config.js is empty
+	const envUrl = import.meta.env.VITE_Z2M_URL as string | undefined;
+	const envToken = import.meta.env.VITE_Z2M_TOKEN as string | undefined;
 	const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-	const wsUrl = raw.url?.trim() || `${proto}//${location.hostname}:8080/api`;
+	const wsUrl = raw.url?.trim() || envUrl?.trim() || `${proto}//${location.hostname}:8080/api`;
 
 	const http = new URL(wsUrl);
 	http.protocol = http.protocol === 'wss:' ? 'https:' : 'http:';
 	http.pathname = http.pathname.replace(/\/api\/?$/, '/');
 	http.search = '';
 
-	return { wsUrl, httpBase: http.toString(), token: raw.token?.trim() ?? '' };
+	return { wsUrl, httpBase: http.toString(), token: raw.token?.trim() || envToken?.trim() || '' };
 }
