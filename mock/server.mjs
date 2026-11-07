@@ -5,7 +5,6 @@
 
 import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
-import { availability, states } from './devices.mjs';
 import { createBridge } from './bridge.mjs';
 
 const PORT = Number(process.env.PORT ?? 8080);
@@ -47,11 +46,13 @@ const broadcast = (topic, payload) => {
 	for (const ws of wss.clients) send(ws, topic, payload);
 };
 const bridge = createBridge({ broadcast });
+const {states, availability} = bridge;
 
 // Live updates: every few seconds one online device reports, like a real network would.
 const jitter = (v, step, min, max) => Math.min(max, Math.max(min, Math.round((v + (Math.random() - 0.5) * 2 * step) * 10) / 10));
 setInterval(() => {
-	const names = Object.keys(states).filter((n) => availability[n] === 'online');
+	const names = Object.keys(states).filter((n) => availability[n] === 'online' && states[n]);
+	if (!names.length) return;
 	const name = names[Math.floor(Math.random() * names.length)];
 	const s = states[name];
 	if ('temperature' in s) s.temperature = jitter(s.temperature, 0.2, -10, 40);

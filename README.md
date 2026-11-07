@@ -1,71 +1,75 @@
-# Zigbee2MQTT custom dashboard
+# Zigbee2MQTT Dashboard
 
-A custom, read-only frontend for [Zigbee2MQTT](https://www.zigbee2mqtt.io/) that runs **alongside** the
-official UI / Windfront. It connects from the browser to Z2M's frontend WebSocket API (`/api`), the
-same API the official frontend uses.
+A Home Assistant styled alternative frontend for Zigbee2MQTT, available as a
+**Home Assistant App (formerly add-on)** or a standalone nginx Alpine container.
+It runs alongside the official frontend and manages the same Zigbee network.
 
-Styled to look native to Home Assistant (HA theme variables, `ha-data-table` / `hass-subpage` metrics,
-Roboto, MDI icons); when embedded in HA on the same origin it follows the active HA theme.
+## Install in Home Assistant
 
-Features (all read-only):
-- **Devices**: searchable, sortable table with image, name, manufacturer, model, IEEE/network address,
-  type/power, link quality, battery (low battery highlighted), last seen, availability, firmware and
-  status. Columns can be shown/hidden; column choice and sort order are remembered per browser.
-- **Device page** (click a row): device info, connectivity, live exposed values grouped like HA
-  (Controls, Sensors, Configuration, Diagnostic), raw state JSON and a link to the zigbee2mqtt.io docs.
-- **Info**: overview counts (devices, routers, end devices, offline, low battery), Zigbee2MQTT,
-  coordinator, network and MQTT facts, and statistics by type, power source, manufacturer and model.
+[Add this app repository](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fj4n-e4t%2Fzigbee2mqtt-dashboard)
 
-Device images use the same sources as the official frontend:
-`definition.icon` → `zigbee2mqtt.io/images/devices/<model>.png` → vendor image → generic fallback.
-Routing uses URL hashes (`#/device/<ieee>`), so the app works under any sub-path without server rewrites.
+1. Open **Settings → Apps → App store → ⋮ → Repositories** (called Add-ons on older versions).
+2. Add `https://github.com/j4n-e4t/zigbee2mqtt-dashboard`.
+3. Install **Zigbee2MQTT Dashboard**.
+4. Set `z2m_url` to your existing Zigbee2MQTT frontend URL as reached by the app,
+   for example `http://45df7312-zigbee2mqtt:8080`. Set `z2m_token` if required.
+5. Start the app, then **Open Web UI**. Optionally enable **Show in sidebar**.
 
-## Layout
+This is a Supervisor app repository, **not a HACS integration**. It needs Home
+Assistant OS or another installation with Supervisor. See [app documentation](web/DOCS.md).
+The image supports amd64 and aarch64. Ingress handles authentication; no extra port
+is exposed. WebSocket traffic is proxied on the same origin and the backend token
+stays in the container.
 
-| Path | What |
-| --- | --- |
-| `web/` | SvelteKit (Svelte 5) + shadcn-svelte + Tailwind, built as a static SPA (`adapter-static`) |
-| `mock/` | Node mock of Z2M's WebSocket API: 19 fake devices with exposes, state, availability and live updates |
-| `docker-compose.yml` | Local dev stack: mock + dashboard |
+## Features
 
-## Local development
+- Searchable and sortable HA-style device tables, live state and writable controls.
+- Device rename, options, removal, reconfigure and interview.
+- Groups, members, scenes and group options.
+- OTA checks, updates, scheduling and progress; Touchlink scans and resets.
+- Network topology and link quality; schema-driven bridge settings and tools.
+- Persistent joining status, countdown and notification history.
+
+Some advanced per-device tabs are still scaffolding. This is an initial 0.0.1
+release, not full Windfront feature parity. Back up Zigbee2MQTT before network changes.
+
+## Standalone Docker
 
 ```sh
-# Option A: everything in Docker
-docker compose up --build
-# dashboard → http://localhost:8081, mock Z2M → ws://localhost:8090/api
+docker run -d --name z2m-dashboard --restart unless-stopped \
+  -p 8081:80 \
+  -e Z2M_UPSTREAM=http://zigbee2mqtt.local:8080 \
+  -e Z2M_TOKEN=your-frontend-token \
+  ghcr.io/j4n-e4t/zigbee2mqtt-dashboard:0.0.1
+```
 
-# Option B: hot reload
-docker compose up -d z2m-mock
-cd web && pnpm install
-echo 'VITE_Z2M_URL=ws://localhost:8090/api' > .env.local   # gitignored; add VITE_Z2M_TOKEN=... if needed
+`Z2M_UPSTREAM` is the backend HTTP(S) frontend URL from the container's network.
+In this mode the browser uses the dashboard's own `/api` WebSocket proxy. Put
+standalone deployments behind your own authentication; only Supervisor ingress
+provides Home Assistant authentication.
+
+For direct browser connections instead, omit `Z2M_UPSTREAM` and set `Z2M_URL` to
+a browser-reachable `ws://` or `wss://` endpoint ending in `/api`. In that mode
+`Z2M_TOKEN` is sent to the browser in `config.js`.
+
+## Development and releases
+
+```sh
+cd web
+pnpm install --frozen-lockfile
 pnpm dev
+# From repository root:
+node --test mock/handlers.test.mjs web/tests/notifications.test.mjs
+# Or run dashboard and fake bridge together:
+docker compose up --build
 ```
 
-## Installing next to a real Zigbee2MQTT
+Development dashboard: http://localhost:8081; mock API: ws://localhost:8090/api.
+The mock never connects to real Zigbee hardware.
 
-The dashboard is static files served by nginx. Configuration happens at container start:
-
-| Env var | Meaning |
-| --- | --- |
-| `Z2M_URL` | Z2M frontend WebSocket **as reached from the browser**, e.g. `ws://192.168.1.10:8080/api` (`wss://` behind HTTPS). Empty = `ws://<dashboard host>:8080/api` |
-| `Z2M_TOKEN` | `frontend.auth_token` from Z2M's `configuration.yaml`, if set |
-
-```yaml
-# add to the compose file that runs zigbee2mqtt
-  z2m-dashboard:
-    build: ./path/to/this/repo/web    # or a pushed image
-    restart: unless-stopped
-    ports:
-      - "8081:80"
-    environment:
-      Z2M_URL: "ws://192.168.1.10:8080/api"
-      Z2M_TOKEN: ""
-```
-
-Notes:
-- The token ends up in `config.js`, readable by anyone who can open the dashboard, so it offers the
-  same protection as the official UI's token prompt and nothing more. Keep it on your LAN or behind a
-  proxy with auth.
-- If the dashboard is served over HTTPS, `Z2M_URL` must be `wss://` (put Z2M behind the same reverse proxy).
-- Without Docker: `cd web && pnpm build`, copy `web/build/` to any static web server, and edit `config.js`.
+The `Validate and release` GitHub Actions workflow checks the app and builds a
+multi-architecture image from `web/Dockerfile` (nginx Alpine). Pushing `v0.0.1`
+publishes `ghcr.io/j4n-e4t/zigbee2mqtt-dashboard:0.0.1` and `:latest`, then creates
+the GitHub release. Future releases must update `web/config.yaml`,
+`web/package.json`, the image version label, and `web/CHANGELOG.md` before tagging.
+The app store reads its available version from the repository's default branch.

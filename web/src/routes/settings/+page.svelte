@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SectionTabs from '#lib/components/section-tabs.svelte';
 	import { page } from '$app/state';
 	import PageShell from '#lib/components/page-shell.svelte';
 	import HaCard from '#lib/components/ha-card.svelte';
@@ -10,7 +11,7 @@
 	import { clone, diffOptions } from '#lib/z2m/options.js';
 	import { run } from '#lib/ui.svelte.js';
 
-	// Sub-sections via ?tab= (hash router keeps the query inside the hash)
+	// Query parameters precede the hash route so SvelteKit exposes them in page.url.searchParams.
 	const tab = $derived(page.url.searchParams.get('tab') ?? 'settings');
 	const section = $derived(page.url.searchParams.get('section'));
 	const subTabs = [
@@ -35,8 +36,11 @@
 	$effect(() => {
 		if (!current) return;
 		const v = info?.config?.[current[0]];
-		original = clone((v && typeof v === 'object' ? v : {}) as Record<string, unknown>);
-		draft = clone(original);
+		// Clone the source twice: reading `original` here would subscribe this effect
+		// to the state it replaces, causing an infinite update loop.
+		const snapshot = clone({ [current[0]]: v });
+		original = snapshot;
+		draft = clone(snapshot);
 	});
 	const changes = $derived(current ? diffOptions(original, draft) : {});
 	const dirty = $derived(Object.keys(changes).length > 0);
@@ -45,27 +49,16 @@
 	async function save() {
 		if (!current) return;
 		saving = true;
-		await run(() => z2m.request('options', { options: { [current[0]]: changes } }), 'Settings saved');
+		await run(() => z2m.request('options', { options: changes }), 'Settings saved');
 		saving = false;
 	}
 </script>
 
 <PageShell>
+ <h1 class="m-0 mb-4 text-2xl font-normal">Settings</h1>
 	<RestartBanner />
 
-	<div class="mb-4 flex flex-wrap gap-2" role="tablist">
-		{#each subTabs as t (t.key)}
-			<a
-				role="tab"
-				aria-selected={tab === t.key}
-				href="#/settings?tab={t.key}"
-				class="ha-button no-underline"
-				data-size="s"
-				data-appearance={tab === t.key ? 'filled' : 'plain'}
-				data-variant={tab === t.key ? undefined : 'neutral'}>{t.label}</a
-			>
-		{/each}
-	</div>
+ <SectionTabs items={subTabs.map(t => ({...t,href:`?tab=${t.key}#/settings`}))} active={tab} />
 
 	{#if tab === 'tools'}
 		<SettingsTools />
@@ -78,7 +71,7 @@
 			<nav class="flex flex-row flex-wrap gap-1 md:flex-col" aria-label="Settings sections">
 				{#each sections as [key, s] (key)}
 					<a
-						href="#/settings?tab=settings&section={key}"
+						href="?tab=settings&section={key}#/settings"
 						class="rounded-full px-4 py-2 no-underline md:rounded-md {key === current[0]
 							? 'bg-[var(--ha-color-fill-primary-normal-resting)] text-[var(--ha-color-on-primary-normal)]'
 							: 'text-foreground hover:bg-hover'}">{s.title ?? key}</a
@@ -88,7 +81,7 @@
 			<HaCard header={current[1].title ?? current[0]}>
 				{#if current[1].description}<p class="m-0 mb-3 text-muted-foreground">{current[1].description}</p>{/if}
 				{#key current[0]}
-					<SchemaForm schema={current[1]} bind:value={draft} root={schema} />
+					<SchemaForm schema={{properties:{[current[0]]:current[1]}}} bind:value={draft} root={schema} />
 				{/key}
 				{#snippet actions()}
 					<div class="flex w-full items-center justify-end gap-2">

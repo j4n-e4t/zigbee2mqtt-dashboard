@@ -8,17 +8,15 @@
 		mdiChartLine
 	} from '@mdi/js';
 	import { page } from '$app/state';
-	import ConnectionAlert from '#lib/components/connection-alert.svelte';
+	import PageShell from '#lib/components/page-shell.svelte';
+	import SectionTabs from '#lib/components/section-tabs.svelte';
 	import HaCard from '#lib/components/ha-card.svelte';
-	import TabsToolbar from '#lib/components/tabs-toolbar.svelte';
-	import TabsBottomBar from '#lib/components/tabs-bottom-bar.svelte';
 	import Overview from '#lib/components/device/overview.svelte';
 	import DeviceSettings from '#lib/components/device/settings.svelte';
 	import DeviceBind from '#lib/components/device/bind.svelte';
 	import DeviceReporting from '#lib/components/device/reporting.svelte';
 	import DeviceGroups from '#lib/components/device/groups.svelte';
 	import DeviceConsole from '#lib/components/device/console.svelte';
-	import { ha } from '#lib/home-assistant.svelte.js';
 	import { z2m } from '#lib/z2m/store.svelte.js';
 	import type { Tab } from '#lib/tabs.js';
 
@@ -39,12 +37,11 @@
 	);
 </script>
 
-<div class="flex h-full flex-col">
-	<TabsToolbar {tabs} active={tabKey} backHref="#/" title={device?.friendly_name ?? 'Device'} />
-	<ConnectionAlert />
+<PageShell>
+ <a href="#/" class="mb-3 inline-flex text-primary no-underline">← Devices</a>
+ <h1 class="m-0 mb-4 text-2xl font-normal">{device?.friendly_name ?? 'Device'}</h1>
+ <SectionTabs items={tabs.map(t => ({key:t.route,label:t.label,href:t.href}))} active={tabKey} />
 
-	<div class="min-h-0 flex-1 overflow-auto">
-		<div class="mx-auto max-w-[1280px] px-4 py-2 {ha.narrow ? 'mt-0' : 'my-8'}">
 			{#if !device}
 				<HaCard>
 					<p class="m-0 text-muted-foreground">
@@ -56,11 +53,6 @@
 					</p>
 				</HaCard>
 			{:else}
-				{#if !ha.narrow}
-					<h1 class="m-0 mb-4 truncate text-[length:var(--ha-font-size-2xl)] leading-[var(--ha-line-height-condensed)] font-normal">
-						{device.friendly_name}
-					</h1>
-				{/if}
 				{#key device.ieee_address}
 					{#if tabKey === 'settings'}<DeviceSettings {device} />
 					{:else if tabKey === 'bind'}<DeviceBind {device} />
@@ -71,8 +63,4 @@
 					{/if}
 				{/key}
 			{/if}
-		</div>
-	</div>
-
-	{#if ha.narrow}<TabsBottomBar {tabs} active={tabKey} />{/if}
-</div>
+</PageShell>

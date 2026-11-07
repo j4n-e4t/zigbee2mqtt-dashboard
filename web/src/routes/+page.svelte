@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { mdiHelpCircleOutline, mdiMagnify, mdiClose } from '@mdi/js';
+	import { mdiHelpCircleOutline } from '@mdi/js';
 	import * as Table from '#lib/components/ui/table/index.js';
+	import TableToolbar from '#lib/components/table-toolbar.svelte';
 	import DeviceImage from '#lib/components/device-image.svelte';
 	import HaIcon from '#lib/components/ha-icon.svelte';
 	import SortHeader from '#lib/components/sort-header.svelte';
-	import TabsToolbar from '#lib/components/tabs-toolbar.svelte';
-	import TabsBottomBar from '#lib/components/tabs-bottom-bar.svelte';
-	import ConnectionAlert from '#lib/components/connection-alert.svelte';
+	import PageShell from '#lib/components/page-shell.svelte';
 	import ColumnPicker from '#lib/components/column-picker.svelte';
 	import StatusLabels from '#lib/components/status-labels.svelte';
 	import { ha } from '#lib/home-assistant.svelte.js';
@@ -84,37 +83,13 @@
 	<SortHeader {title} sorted={prefs.sortKey === key} direction={prefs.sortDir} onsort={() => sortBy(key)} />
 {/snippet}
 
-<div class="flex h-full flex-col">
-	<TabsToolbar />
+<PageShell>
+ <h1 class="m-0 mb-4 text-2xl font-normal">Devices</h1>
 
-	<!-- hass-tabs-subpage-data-table .table-header -->
-	<div class="flex h-14 shrink-0 items-center gap-2 border-b bg-background ps-4 pe-2">
-		<label
-			class="flex flex-1 items-center gap-2 border border-[var(--ha-color-border-neutral-quiet)] bg-card px-2 text-muted-foreground transition-colors hover:border-[var(--ha-color-border-neutral-normal)] focus-within:border-primary {ha.narrow
-				? 'h-10 rounded-md'
-				: 'h-8 rounded-[10px]'}"
-		>
-			<HaIcon path={mdiMagnify} size={20} />
-			<input
-				type="search"
-				bind:value={query}
-				placeholder="Search {z2m.devices.length} devices"
-				aria-label="Search devices"
-				class="h-full min-w-0 flex-1 bg-transparent text-foreground outline-none placeholder:text-[var(--ha-color-placeholder)] [&::-webkit-search-cancel-button]:hidden"
-			/>
-			{#if query}
-				<button type="button" aria-label="Clear search" class="grid place-items-center rounded-full hover:text-foreground" onclick={() => (query = '')}>
-					<HaIcon path={mdiClose} size={18} />
-				</button>
-			{/if}
-		</label>
-		<ColumnPicker />
-	</div>
+ <TableToolbar bind:query label="Search devices" placeholder={`Search ${z2m.devices.length} devices`}><ColumnPicker /></TableToolbar>
 
-	<ConnectionAlert />
-
-	<div class="min-h-0 flex-1 overflow-auto bg-table">
-		<Table.Root class={ha.narrow ? '[--cell-px:var(--ha-space-2)]' : ''}>
+	<div class="overflow-auto rounded-lg border border-[var(--divider-color)] bg-card">
+		<Table.Root>
 			<Table.Header>
 				<Table.Row>
 					<Table.Head class="w-[72px]"><span class="sr-only">Image</span></Table.Head>
@@ -269,5 +244,4 @@
 		{/if}
 	</div>
 
-	{#if ha.narrow}<TabsBottomBar />{/if}
-</div>
+</PageShell>

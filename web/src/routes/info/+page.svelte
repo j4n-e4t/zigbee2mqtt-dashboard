@@ -1,10 +1,7 @@
 <script lang="ts">
 	import HaCard from '#lib/components/ha-card.svelte';
 	import InfoRow from '#lib/components/info-row.svelte';
-	import TabsToolbar from '#lib/components/tabs-toolbar.svelte';
-	import TabsBottomBar from '#lib/components/tabs-bottom-bar.svelte';
-	import ConnectionAlert from '#lib/components/connection-alert.svelte';
-	import { ha } from '#lib/home-assistant.svelte.js';
+	import PageShell from '#lib/components/page-shell.svelte';
 	import { z2m } from '#lib/z2m/store.svelte.js';
 	import { hex, isLowBattery, typeLabel } from '#lib/z2m/format.js';
 	import type { Device } from '#lib/z2m/types.js';
@@ -49,13 +46,8 @@
 	);
 </script>
 
-<div class="flex h-full flex-col">
-	<TabsToolbar />
-	<ConnectionAlert />
-
-	<div class="min-h-0 flex-1 overflow-auto">
-		<!-- HA config page container: max 1280px, 16px gutter, 32px top margin (none when narrow) -->
-		<div class="mx-auto max-w-[1280px] px-4 py-2 {ha.narrow ? 'mt-0' : 'my-8'}">
+<PageShell>
+ <h1 class="m-0 mb-4 text-2xl font-normal">Info</h1>
 			<HaCard header="Overview" class="mb-4">
 				<div class="grid grid-cols-2 gap-4 sm:grid-cols-5">
 					{#each overview as item (item.label)}
@@ -112,8 +104,4 @@
 					</HaCard>
 				{/each}
 			</div>
-		</div>
-	</div>
-
-	{#if ha.narrow}<TabsBottomBar />{/if}
-</div>
+</PageShell>

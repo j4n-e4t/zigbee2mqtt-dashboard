@@ -67,16 +67,18 @@
 	let jsonErrors = $state<Record<string, string>>({});
 	function setJson(key: string, text: string) {
 		try {
-			value[key] = text.trim() === '' ? undefined : JSON.parse(text);
+			setValue(key, text.trim() === '' ? undefined : JSON.parse(text));
 			delete jsonErrors[key];
 		} catch {
 			jsonErrors[key] = 'Invalid JSON';
 		}
 	}
-	const asObject = (key: string) => {
-		if (!value[key] || typeof value[key] !== 'object') value[key] = {};
-		return value[key] as Record<string, unknown>;
-	};
+	function setValue(key: string, next: unknown) {
+		value = { ...value, [key]: next };
+	}
+	const asObject = (key: string) =>
+		(value[key] && typeof value[key] === 'object' ? value[key] : {}) as Record<string, unknown>;
+
 </script>
 
 {#snippet label(key: string, s: JsonSchema)}
@@ -97,7 +99,7 @@
 			<fieldset class="m-0 mt-2 min-w-0 rounded-[var(--ha-border-radius-md)] border border-[var(--divider-color)] p-3">
 				<legend class="px-1 font-medium">{s.title ?? key}</legend>
 				{#if s.description}<div class="mb-2 text-[length:var(--ha-font-size-s)] text-muted-foreground">{s.description}</div>{/if}
-				<Self schema={s} value={asObject(key)} root={rootSchema} depth={depth + 1} {disabled} />
+				<Self schema={s} bind:value={() => asObject(key), (next) => setValue(key, next)} root={rootSchema} depth={depth + 1} {disabled} />
 			</fieldset>
 		{:else if t === 'boolean'}
 			<label class="flex min-h-12 items-center gap-4 py-1">
@@ -107,7 +109,7 @@
 					class="ha-switch"
 					disabled={ro}
 					checked={(value[key] ?? s.default ?? false) === true}
-					onchange={(e) => (value[key] = e.currentTarget.checked)}
+					onchange={(e) => setValue(key, e.currentTarget.checked)}
 				/>
 			</label>
 		{:else if s.enum}
@@ -119,7 +121,7 @@
 					value={value[key] === undefined ? '' : String(value[key])}
 					onchange={(e) => {
 						const v = e.currentTarget.value;
-						value[key] = v === '' ? undefined : (s.enum!.find((x) => String(x) === v) ?? v);
+						setValue(key, v === '' ? undefined : (s.enum!.find((x) => String(x) === v) ?? v));
 					}}
 				>
 					<option value="">{s.default !== undefined ? `Default (${s.default})` : '—'}</option>
@@ -138,7 +140,7 @@
 					step={t === 'integer' ? 1 : 'any'}
 					placeholder={s.default !== undefined ? String(s.default) : ''}
 					value={typeof value[key] === 'number' ? value[key] : ''}
-					onchange={(e) => (value[key] = e.currentTarget.value === '' ? undefined : Number(e.currentTarget.value))}
+					onchange={(e) => setValue(key, e.currentTarget.value === '' ? undefined : Number(e.currentTarget.value))}
 				/>
 			</label>
 		{:else if t === 'string'}
@@ -150,7 +152,7 @@
 					disabled={ro}
 					placeholder={s.default !== undefined ? String(s.default) : s.examples?.length ? String(s.examples[0]) : ''}
 					value={typeof value[key] === 'string' ? value[key] : ''}
-					onchange={(e) => (value[key] = e.currentTarget.value === '' ? undefined : e.currentTarget.value)}
+					onchange={(e) => setValue(key, e.currentTarget.value === '' ? undefined : e.currentTarget.value)}
 				/>
 			</label>
 		{:else if t === 'array' && !isJson(s)}
@@ -164,7 +166,7 @@
 					value={Array.isArray(value[key]) ? (value[key] as unknown[]).join('\n') : ''}
 					onchange={(e) => {
 						const lines = e.currentTarget.value.split('\n').map((l) => l.trim()).filter(Boolean);
-						value[key] = itemType === 'string' ? lines : lines.map(Number);
+						setValue(key, itemType === 'string' ? lines : lines.map(Number));
 					}}
 				></textarea>
 			</label>

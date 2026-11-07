@@ -32,8 +32,8 @@ export function createBridge({ broadcast }) {
 		devices: structuredClone(initialDevices),
 		groups: structuredClone(initialGroups),
 		info: { ...structuredClone(bridgeInfo), config: deepMerge(defaults(settingsSchema), bridgeInfo.config), config_schema: settingsSchema },
-		states, // friendly name -> state (shared with the live-update ticker)
-		availability,
+		states: structuredClone(states), // independent bridge snapshot
+		availability: structuredClone(availability),
 		groupStates: {},
 		permitJoinTimer: null
 	};
@@ -93,6 +93,8 @@ export function createBridge({ broadcast }) {
 	}
 
 	return {
+		states: db.states,
+		availability: db.availability,
 		onConnect(send) {
 			// Same initial burst Z2M sends: retained bridge topics, then states and availability.
 			send('bridge/state', { state: 'online' });
@@ -109,8 +111,9 @@ export function createBridge({ broadcast }) {
 			const req = topic.match(/^bridge\/request\/(.+)$/);
 			if (req) {
 				const op = req[1];
+				const responseOp = op.replace(/\/downgrade$/, '');
 				const transaction = payload?.transaction;
-				const respond = (body) => reply(`bridge/response/${op}`, { ...body, ...(transaction !== undefined ? { transaction } : {}) });
+				const respond = (body) => reply(`bridge/response/${responseOp}`, { ...body, ...(transaction !== undefined ? { transaction } : {}) });
 				const handler = handlers[op];
 				if (!handler) return respond({ data: {}, status: 'error', error: `Request '${op}' is not supported by the mock server` });
 				try {
@@ -127,7 +130,9 @@ export function createBridge({ broadcast }) {
 			const set = topic.match(/^(.+)\/set(?:\/([^/]+))?$/);
 			if (set) {
 				const body = set[2] ? { [set[2]]: payload } : payload;
-				if (body && typeof body === 'object') applySet(set[1], body);
+				if (body && typeof body === 'object') {
+					try { applySet(set[1], body); } catch (error) { log('error', error.message); }
+				}
 				return;
 			}
 			const get = topic.match(/^(.+)\/get$/);

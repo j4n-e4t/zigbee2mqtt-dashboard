@@ -2,7 +2,7 @@
 	import { mdiChevronDown, mdiAccessPointNetwork, mdiAccessPointNetworkOff } from '@mdi/js';
 	import HaIcon from './ha-icon.svelte';
 	import { clock, z2m } from '#lib/z2m/store.svelte.js';
-	import { run } from '#lib/ui.svelte.js';
+	import { joining, setPermitJoin } from '#lib/z2m/join.svelte.js';
 
 	// Permit join: bridge/request/permit_join { time, device? }; time 0 closes. State comes back in bridge/info.
 	let open = $state(false);
@@ -24,14 +24,7 @@
 	});
 
 	async function toggle() {
-		if (active) {
-			await run(() => z2m.request('permit_join', { time: 0 }), 'Joining disabled');
-		} else {
-			await run(
-				() => z2m.request('permit_join', { time, ...(target ? { device: target } : {}) }),
-				`Joining enabled for ${time} s${target ? ` via ${target}` : ''}`
-			);
-		}
+		await setPermitJoin(active ? 0 : time, active ? undefined : target || undefined);
 		open = false;
 	}
 </script>
@@ -45,10 +38,13 @@
 		data-size="s"
 		data-appearance={active ? undefined : 'outlined'}
 		title={active ? 'Stop joining' : 'Allow new devices to join'}
+		disabled={joining.pending || z2m.status !== 'open' || z2m.bridgeState === 'offline'}
+		aria-busy={joining.pending}
+		aria-label={joining.pending ? 'Changing joining state' : active ? 'Stop joining' : 'Allow new devices to join'}
 		onclick={toggle}
 	>
 		<HaIcon path={active ? mdiAccessPointNetwork : mdiAccessPointNetworkOff} size={18} />
-		<span class="max-[600px]:hidden">{active ? `Joining${remaining !== undefined ? ` · ${remaining}s` : ''}` : 'Permit join'}</span>
+		<span class="max-[600px]:hidden">{joining.pending ? 'Updating…' : active ? `Joining${remaining !== undefined ? ` · ${remaining}s` : ''}` : 'Permit join'}</span>
 	</button>
 	{#if !active}
 		<button type="button" class="ha-icon-button size-8!" aria-label="Permit join options" aria-expanded={open} onclick={() => (open = !open)}>
@@ -61,7 +57,7 @@
 				<span class="ha-field-label">Join via</span>
 				<select class="ha-input" bind:value={target}>
 					<option value="">All (coordinator and routers)</option>
-					{#each routers as r (r.ieee_address)}<option value={r.friendly_name}>{r.friendly_name}</option>{/each}
+					{#each routers as r (r.ieee_address)}<option value={r.ieee_address}>{r.friendly_name}</option>{/each}
 				</select>
 			</label>
 			<label class="mt-3 block">
@@ -69,7 +65,7 @@
 				<input type="range" class="ha-slider" min="10" max="254" bind:value={time} />
 			</label>
 			<div class="mt-3 flex justify-end">
-				<button type="button" class="ha-button" data-size="s" onclick={toggle}>Permit join</button>
+				<button type="button" class="ha-button" data-size="s" disabled={joining.pending || z2m.status !== 'open' || z2m.bridgeState === 'offline'} onclick={toggle}>Permit join</button>
 			</div>
 		</div>
 	{/if}

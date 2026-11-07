@@ -3,11 +3,17 @@ import { BridgeError } from '#lib/z2m/client.svelte.js';
 
 export type Toast = { id: number; message: string; error: boolean };
 export const toasts = $state<Toast[]>([]);
+export type Notification = Toast & { time: number; read: boolean };
+export const notifications = $state<Notification[]>([]);
+export function markNotificationsRead() { for (const n of notifications) n.read = true; }
+export function clearNotifications() { notifications.splice(0); }
 let toastId = 0;
 
 export function toast(message: string, { error = false, duration }: { error?: boolean; duration?: number } = {}) {
 	const id = ++toastId;
 	toasts.push({ id, message, error });
+ notifications.unshift({ id, message, error, time: Date.now(), read: false });
+ if (notifications.length > 50) notifications.splice(50);
 	setTimeout(() => dismissToast(id), duration ?? (error ? 8000 : 4000));
 }
 

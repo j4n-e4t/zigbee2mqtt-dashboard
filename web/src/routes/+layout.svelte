@@ -2,6 +2,7 @@
 	import './layout.css';
 	import favicon from '#lib/assets/favicon.svg';
 	import ConfirmDialog from '#lib/components/confirm-dialog.svelte';
+	import BridgeNotifications from '#lib/components/bridge-notifications.svelte';
 	import Toasts from '#lib/components/toasts.svelte';
 	import { connectHomeAssistant } from '#lib/home-assistant.svelte.js';
 	import type { LayoutProps } from './$types';
@@ -18,3 +19,4 @@
 {@render children()}
 <ConfirmDialog />
 <Toasts />
+<BridgeNotifications />
