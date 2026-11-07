@@ -32,6 +32,8 @@
 	--ha-font-size-m: 14px;
 	--ha-font-size-l: 16px;
 	--ha-font-size-xl: 20px;
+	--ha-font-size-2xl: 24px;
+	--ha-font-size-3xl: 28px;
 	--ha-font-weight-normal: 400;
 	--ha-font-weight-medium: 500;
 	--ha-line-height-condensed: 1.2;
@@ -63,6 +65,8 @@
 	--app-header-border-bottom: 1px solid var(--divider-color);
 	--header-height: 56px;
 	--data-table-background-color: var(--card-background-color);
+	--state-icon-color: #44739e;
+	--shadow-color: rgba(0, 0, 0, 0.16);
 	--scrollbar-thumb-color: rgb(194, 194, 194);
 
 	/* semantic (labels, inputs) */
@@ -90,6 +94,7 @@
 	--outline-color: rgba(225, 225, 225, 0.12);
 	--rgb-primary-text-color: 225, 225, 225;
 	--scrollbar-thumb-color: rgb(110, 110, 110);
+	--shadow-color: rgba(0, 0, 0, 0.48);
 
 	--ha-color-border-neutral-quiet: #5e5e5e;
 	--ha-color-border-neutral-normal: #7a7a7a;

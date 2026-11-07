@@ -1,5 +1,5 @@
 import type { Z2MConfig } from '#lib/config.js';
-import type { BridgeInfo, BridgeState, Device } from './types.js';
+import type { Availability, BridgeInfo, BridgeState, Device, DeviceState } from './types.js';
 
 export type ConnectionStatus = 'connecting' | 'open' | 'closed' | 'unauthorized';
 
@@ -13,7 +13,9 @@ export class Z2MClient {
 	info = $state<BridgeInfo | null>(null);
 	devices = $state<Device[]>([]);
 	/** Device state payloads keyed by friendly name (linkquality, battery, ...) */
-	deviceStates = $state<Record<string, Record<string, unknown>>>({});
+	deviceStates = $state<Record<string, DeviceState>>({});
+	/** `<friendly name>/availability`, only sent when Z2M's availability feature is enabled */
+	availability = $state<Record<string, Availability>>({});
 	lastError = $state<string | null>(null);
 
 	#ws: WebSocket | null = null;
@@ -91,6 +93,15 @@ export class Z2MClient {
 		}
 
 		if (topic.startsWith('bridge/')) return;
+
+		if (topic.endsWith('/availability')) {
+			// Z2M >= 1.30 sends { state }, older versions a plain string
+			const state = typeof payload === 'string' ? payload : (payload as { state?: string } | null)?.state;
+			if (state === 'online' || state === 'offline') {
+				this.availability[topic.slice(0, -'/availability'.length)] = state;
+			}
+			return;
+		}
 
 		// Anything else is a device (or group) state topic
 		if (payload && typeof payload === 'object' && !Array.isArray(payload)) {

@@ -5,7 +5,7 @@
 
 import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
-import { bridgeInfo, devices, groups } from './devices.mjs';
+import { availability, bridgeInfo, devices, groups, states } from './devices.mjs';
 
 const PORT = Number(process.env.PORT ?? 8080);
 const AUTH_TOKEN = process.env.AUTH_TOKEN || '';
@@ -43,12 +43,21 @@ http.on('upgrade', (req, socket, head) => {
 
 const send = (ws, topic, payload) => ws.send(JSON.stringify({ topic, payload }));
 
-const stateFor = (d) => {
-	if (d.type === 'Coordinator') return null;
-	const s = { linkquality: 40 + ((d.network_address * 7) % 215) };
-	if (d.power_source === 'Battery') s.battery = 20 + ((d.network_address * 13) % 81);
-	return s;
-};
+// Live updates: every few seconds one online device reports, like a real network would.
+const jitter = (v, step, min, max) => Math.min(max, Math.max(min, Math.round((v + (Math.random() - 0.5) * 2 * step) * 10) / 10));
+setInterval(() => {
+	const names = Object.keys(states).filter((n) => availability[n] === 'online');
+	const name = names[Math.floor(Math.random() * names.length)];
+	const s = states[name];
+	if ('temperature' in s) s.temperature = jitter(s.temperature, 0.2, -10, 40);
+	if ('humidity' in s) s.humidity = jitter(s.humidity, 0.5, 0, 100);
+	if ('power' in s) s.power = jitter(s.power, 3, 0, 2000);
+	if ('illuminance' in s) s.illuminance = Math.max(0, Math.round(jitter(s.illuminance, 5, 0, 1000)));
+	if ('occupancy' in s && Math.random() < 0.3) s.occupancy = !s.occupancy;
+	if (typeof s.linkquality === 'number') s.linkquality = Math.round(jitter(s.linkquality, 6, 1, 255));
+	s.last_seen = new Date().toISOString();
+	for (const ws of wss.clients) send(ws, name, s);
+}, 3000);
 
 wss.on('connection', (ws, req) => {
 	console.log(`client connected from ${req.socket.remoteAddress}`);
@@ -59,10 +68,8 @@ wss.on('connection', (ws, req) => {
 	send(ws, 'bridge/devices', devices);
 	send(ws, 'bridge/groups', groups);
 	send(ws, 'bridge/extensions', []);
-	for (const d of devices) {
-		const s = stateFor(d);
-		if (s) send(ws, d.friendly_name, s);
-	}
+	for (const [name, s] of Object.entries(states)) send(ws, name, s);
+	for (const [name, state] of Object.entries(availability)) send(ws, `${name}/availability`, { state });
 
 	ws.on('message', (raw) => {
 		let msg;

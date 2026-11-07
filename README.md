@@ -7,16 +7,25 @@ same API the official frontend uses.
 Styled to look native to Home Assistant (HA theme variables, `ha-data-table` / `hass-subpage` metrics,
 Roboto, MDI icons); when embedded in HA on the same origin it follows the active HA theme.
 
-Current feature: a device table (image, name, vendor/model, IEEE/network address, type, power,
-firmware, status). Device images use the same sources as the official frontend:
+Features (all read-only):
+- **Devices**: searchable, sortable table with image, name, manufacturer, model, IEEE/network address,
+  type/power, link quality, battery (low battery highlighted), last seen, availability, firmware and
+  status. Columns can be shown/hidden; column choice and sort order are remembered per browser.
+- **Device page** (click a row): device info, connectivity, live exposed values grouped like HA
+  (Controls, Sensors, Configuration, Diagnostic), raw state JSON and a link to the zigbee2mqtt.io docs.
+- **Info**: overview counts (devices, routers, end devices, offline, low battery), Zigbee2MQTT,
+  coordinator, network and MQTT facts, and statistics by type, power source, manufacturer and model.
+
+Device images use the same sources as the official frontend:
 `definition.icon` → `zigbee2mqtt.io/images/devices/<model>.png` → vendor image → generic fallback.
+Routing uses URL hashes (`#/device/<ieee>`), so the app works under any sub-path without server rewrites.
 
 ## Layout
 
 | Path | What |
 | --- | --- |
 | `web/` | SvelteKit (Svelte 5) + shadcn-svelte + Tailwind, built as a static SPA (`adapter-static`) |
-| `mock/` | Tiny Node mock of Z2M's WebSocket API with 19 fake devices |
+| `mock/` | Node mock of Z2M's WebSocket API: 19 fake devices with exposes, state, availability and live updates |
 | `docker-compose.yml` | Local dev stack: mock + dashboard |
 
 ## Local development

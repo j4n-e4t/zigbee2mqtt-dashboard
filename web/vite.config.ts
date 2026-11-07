@@ -12,8 +12,10 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			// SPA mode: everything is served from index.html
-			adapter: adapter({ fallback: 'index.html' })
+			// Static SPA: with the hash router everything is served from index.html, no server rewrites needed
+			adapter: adapter(),
+			// Hash routing (#/device/...) works under any sub-path (reverse proxy, HA ingress) without server rewrites
+			router: { type: 'hash' }
 		})
 	]
 });
