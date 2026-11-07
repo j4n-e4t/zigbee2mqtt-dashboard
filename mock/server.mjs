@@ -5,7 +5,8 @@
 
 import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
-import { availability, bridgeInfo, devices, groups, states } from './devices.mjs';
+import { availability, states } from './devices.mjs';
+import { createBridge } from './bridge.mjs';
 
 const PORT = Number(process.env.PORT ?? 8080);
 const AUTH_TOKEN = process.env.AUTH_TOKEN || '';
@@ -41,7 +42,11 @@ http.on('upgrade', (req, socket, head) => {
 	});
 });
 
-const send = (ws, topic, payload) => ws.send(JSON.stringify({ topic, payload }));
+const send = (ws, topic, payload) => ws.readyState === ws.OPEN && ws.send(JSON.stringify({ topic, payload }));
+const broadcast = (topic, payload) => {
+	for (const ws of wss.clients) send(ws, topic, payload);
+};
+const bridge = createBridge({ broadcast });
 
 // Live updates: every few seconds one online device reports, like a real network would.
 const jitter = (v, step, min, max) => Math.min(max, Math.max(min, Math.round((v + (Math.random() - 0.5) * 2 * step) * 10) / 10));
@@ -56,20 +61,13 @@ setInterval(() => {
 	if ('occupancy' in s && Math.random() < 0.3) s.occupancy = !s.occupancy;
 	if (typeof s.linkquality === 'number') s.linkquality = Math.round(jitter(s.linkquality, 6, 1, 255));
 	s.last_seen = new Date().toISOString();
-	for (const ws of wss.clients) send(ws, name, s);
+	broadcast(name, s);
 }, 3000);
 
 wss.on('connection', (ws, req) => {
 	console.log(`client connected from ${req.socket.remoteAddress}`);
 
-	// Same initial burst Z2M sends: retained bridge topics, then device states.
-	send(ws, 'bridge/state', { state: 'online' });
-	send(ws, 'bridge/info', bridgeInfo);
-	send(ws, 'bridge/devices', devices);
-	send(ws, 'bridge/groups', groups);
-	send(ws, 'bridge/extensions', []);
-	for (const [name, s] of Object.entries(states)) send(ws, name, s);
-	for (const [name, state] of Object.entries(availability)) send(ws, `${name}/availability`, { state });
+	bridge.onConnect((topic, payload) => send(ws, topic, payload));
 
 	ws.on('message', (raw) => {
 		let msg;
@@ -79,16 +77,9 @@ wss.on('connection', (ws, req) => {
 			return;
 		}
 		const topic = String(msg?.topic ?? '');
-		console.log(`<- ${topic}`);
-		const m = topic.match(/^bridge\/request\/(.+)$/);
-		if (m) {
-			send(ws, `bridge/response/${m[1]}`, {
-				status: 'error',
-				error: 'Not supported by mock server',
-				data: {},
-				...(msg.payload?.transaction ? { transaction: msg.payload.transaction } : {})
-			});
-		}
+		console.log(`<- ${topic} ${JSON.stringify(msg.payload ?? null).slice(0, 200)}`);
+		// Responses go to everyone, like the real bridge (clients match on transaction)
+		bridge.onMessage(topic, msg.payload, broadcast);
 	});
 
 	ws.on('close', () => console.log('client disconnected'));

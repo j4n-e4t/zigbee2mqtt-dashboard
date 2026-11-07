@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import DeviceImage from '#lib/components/device-image.svelte';
 	import EntityRow from '#lib/components/entity-row.svelte';
+	import ExposeRow from '#lib/components/expose-row.svelte';
 	import HaCard from '#lib/components/ha-card.svelte';
 	import HaIcon from '#lib/components/ha-icon.svelte';
 	import InfoRow from '#lib/components/info-row.svelte';
@@ -63,7 +64,7 @@
 		<HaCard {header}>
 			<div class="flex flex-col gap-2">
 				{#each list as e (e.key)}
-					<EntityRow icon={e.icon} name={e.label} value={e.display} />
+					<ExposeRow entry={e} entity={device!.friendly_name} disabled={device!.disabled} />
 				{/each}
 			</div>
 		</HaCard>

@@ -80,3 +80,15 @@ export type BridgeState = { state: 'online' | 'offline' };
 
 export type DeviceState = Record<string, unknown>;
 export type Availability = 'online' | 'offline';
+
+export type GroupMember = { ieee_address: string; endpoint: number };
+export type Scene = { id: number; name: string };
+export type Group = {
+	id: number;
+	friendly_name: string;
+	description?: string;
+	members: GroupMember[];
+	scenes: Scene[];
+};
+
+export type LogMessage = { level: string; message: string; namespace?: string; time: number };

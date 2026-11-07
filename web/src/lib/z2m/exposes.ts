@@ -36,6 +36,12 @@ export type ExposeEntry = {
 	icon: string;
 	category: ExposeCategory;
 	expose: Expose;
+	/** published in the state (ACCESS.STATE) */
+	published: boolean;
+	/** can be changed via <name>/set (ACCESS.SET) */
+	writable: boolean;
+	/** can be refreshed via <name>/get (ACCESS.GET) */
+	gettable: boolean;
 };
 
 const pretty = (s: string) => {
@@ -147,9 +153,13 @@ function icon(e: Expose, name: string, value: unknown, parentType?: string): str
 /**
  * Flattens a device's exposes into display rows: specific types (light, switch, climate, ...) are
  * expanded into their features; composites stay one row. Only properties published in the
- * device state (ACCESS.STATE) are listed, since this view only reads.
+ * device state (ACCESS.STATE) or settable (ACCESS.SET) are listed.
  */
 export function exposeEntries(device: Device, state: DeviceState | undefined): ExposeEntry[] {
+	return entriesFor(device.definition?.exposes ?? [], state);
+}
+
+export function entriesFor(exposes: Expose[], state: DeviceState | undefined): ExposeEntry[] {
 	const out: ExposeEntry[] = [];
 	const walk = (list: Expose[], parentType?: string, parentEndpoint?: string) => {
 		for (const e of list) {
@@ -158,7 +168,7 @@ export function exposeEntries(device: Device, state: DeviceState | undefined): E
 				continue;
 			}
 			const access = e.access ?? ACCESS.STATE;
-			if (!(access & ACCESS.STATE)) continue;
+			if (!(access & (ACCESS.STATE | ACCESS.SET))) continue;
 			const property = e.property ?? e.name ?? '';
 			if (!property) continue;
 			const name = e.name ?? property;
@@ -180,10 +190,13 @@ export function exposeEntries(device: Device, state: DeviceState | undefined): E
 				display: format(e, value, property),
 				icon: icon(e, name, value, parentType),
 				category,
-				expose: e
+				expose: e,
+				published: !!(access & ACCESS.STATE),
+				writable: !!(access & ACCESS.SET),
+				gettable: !!(access & ACCESS.GET)
 			});
 		}
 	};
-	walk(device.definition?.exposes ?? []);
+	walk(exposes);
 	return out;
 }

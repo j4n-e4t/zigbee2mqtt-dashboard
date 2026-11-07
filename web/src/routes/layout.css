@@ -81,6 +81,22 @@
 	--ha-color-on-primary-normal: #009ac7;
 	--ha-color-fill-neutral-quiet-resting: #f3f3f3;
 	--ha-color-on-neutral-normal: #5e5e5e;
+	/* buttons, switches, dialogs, toasts */
+	--ha-color-fill-primary-loud-resting: #009ac7;
+	--ha-color-fill-primary-loud-hover: #006787;
+	--ha-color-fill-primary-normal-resting: #dff3fc;
+	--ha-color-fill-primary-normal-hover: #b9e6fc;
+	--ha-color-fill-primary-quiet-hover: #dff3fc;
+	--ha-color-fill-danger-loud-resting: #dc3146;
+	--ha-color-fill-danger-loud-hover: #b30532;
+	--ha-color-fill-danger-quiet-hover: #ffdedc;
+	--ha-color-fill-neutral-quiet-hover: #e6e6e6;
+	--ha-color-fill-disabled-quiet-resting: #f3f3f3;
+	--ha-color-surface-inverted: #202020;
+	--ha-color-on-surface-inverted: #ffffff;
+	--ha-color-form-background: #f3f3f3;
+	--ha-shadow-l: 0 8px 24px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.08);
+	--ha-dialog-scrim: rgba(0, 0, 0, 0.32);
 }
 :root[data-theme='dark'] {
 	--primary-color: #009ac7;
@@ -107,6 +123,21 @@
 	--ha-color-on-primary-normal: #37c8fd;
 	--ha-color-fill-neutral-quiet-resting: #141414;
 	--ha-color-on-neutral-normal: #989898;
+	--ha-color-fill-primary-loud-resting: #009ac7;
+	--ha-color-fill-primary-loud-hover: #006787;
+	--ha-color-fill-primary-normal-resting: #002e3e;
+	--ha-color-fill-primary-normal-hover: #004156;
+	--ha-color-fill-primary-quiet-hover: #002e3e;
+	--ha-color-fill-danger-loud-resting: #b30532;
+	--ha-color-fill-danger-loud-hover: #8a132c;
+	--ha-color-fill-danger-quiet-hover: #3e0913;
+	--ha-color-fill-neutral-quiet-hover: #202020;
+	--ha-color-fill-disabled-quiet-resting: #202020;
+	--ha-color-surface-inverted: #ffffff;
+	--ha-color-on-surface-inverted: #141414;
+	--ha-color-form-background: #202020;
+	--ha-shadow-l: 0 8px 24px rgba(0, 0, 0, 0.48), 0 2px 6px rgba(0, 0, 0, 0.32);
+	--ha-dialog-scrim: rgba(0, 0, 0, 0.6);
 }
 
 /* shadcn tokens, derived from the Home Assistant theme */
@@ -220,4 +251,123 @@
 		background: var(--ha-color-fill-neutral-quiet-resting);
 		color: var(--ha-color-on-neutral-normal);
 	}
+}
+
+@layer components {
+	/* ha-button: 40px pill, 16px inline padding, 14px medium. appearance: accent (default) | filled | outlined | plain;
+	   variant: brand (default) | danger | neutral */
+	.ha-button {
+		--btn-fill: var(--ha-color-fill-primary-loud-resting);
+		--btn-fill-hover: var(--ha-color-fill-primary-loud-hover);
+		--btn-on: #ffffff;
+		--btn-quiet-hover: var(--ha-color-fill-primary-quiet-hover);
+		--btn-text: var(--ha-color-on-primary-normal);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--ha-space-2);
+		height: 40px;
+		padding: 0 var(--ha-space-4);
+		border: 1px solid transparent;
+		border-radius: 9999px;
+		background: var(--btn-fill);
+		color: var(--btn-on);
+		font-size: var(--ha-font-size-m);
+		font-weight: var(--ha-font-weight-medium);
+		line-height: 1;
+		white-space: nowrap;
+		text-decoration: none;
+		transition: background-color 0.15s ease-out;
+	}
+	.ha-button:not(:disabled):hover { background: var(--btn-fill-hover); }
+	.ha-button:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+	.ha-button:disabled { opacity: 0.5; cursor: default; }
+	.ha-button[data-variant='danger'] {
+		--btn-fill: var(--ha-color-fill-danger-loud-resting);
+		--btn-fill-hover: var(--ha-color-fill-danger-loud-hover);
+		--btn-quiet-hover: var(--ha-color-fill-danger-quiet-hover);
+		--btn-text: var(--ha-color-on-danger-normal);
+	}
+	.ha-button[data-variant='neutral'] {
+		--btn-quiet-hover: var(--ha-color-fill-neutral-quiet-hover);
+		--btn-text: var(--primary-text-color);
+	}
+	.ha-button[data-appearance='filled'] { background: var(--ha-color-fill-primary-normal-resting); color: var(--btn-text); }
+	.ha-button[data-appearance='filled']:not(:disabled):hover { background: var(--ha-color-fill-primary-normal-hover); }
+	.ha-button[data-appearance='plain'],
+	.ha-button[data-appearance='outlined'] { background: transparent; color: var(--btn-text); }
+	.ha-button[data-appearance='outlined'] { border-color: var(--ha-color-border-neutral-quiet); }
+	.ha-button[data-appearance='plain']:not(:disabled):hover,
+	.ha-button[data-appearance='outlined']:not(:disabled):hover { background: var(--btn-quiet-hover); }
+	.ha-button[data-size='s'] { height: 32px; padding: 0 var(--ha-space-3); }
+
+	/* ha-icon-button: 48px round target, 24px icon */
+	.ha-icon-button {
+		display: inline-grid;
+		place-items: center;
+		width: 48px;
+		height: 48px;
+		flex: none;
+		border-radius: 9999px;
+		color: var(--sidebar-icon-color);
+	}
+	.ha-icon-button:not(:disabled):hover { background: var(--hover); }
+	.ha-icon-button:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
+	.ha-icon-button:disabled { opacity: 0.4; cursor: default; }
+
+	/* ha-switch: 48x24 track, 18px thumb */
+	.ha-switch {
+		appearance: none;
+		position: relative;
+		width: 48px;
+		height: 24px;
+		flex: none;
+		margin: 0;
+		border: 1px solid var(--ha-color-border-neutral-normal);
+		border-radius: 9999px;
+		background: var(--ha-color-fill-disabled-quiet-resting);
+		cursor: pointer;
+		transition: background-color 0.15s, border-color 0.15s;
+	}
+	.ha-switch::before {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 2px;
+		width: 18px;
+		height: 18px;
+		border-radius: 9999px;
+		background: var(--ha-color-on-neutral-normal);
+		transform: translateY(-50%);
+		transition: left 0.15s ease, background-color 0.15s;
+	}
+	.ha-switch:checked { background: var(--ha-color-fill-primary-normal-resting); border-color: var(--primary-color); }
+	.ha-switch:checked::before { left: calc(100% - 20px); background: var(--primary-color); }
+	.ha-switch:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+	.ha-switch:disabled { opacity: 0.5; cursor: default; }
+
+	/* ha-input / ha-select (outlined): 40px, 8px radius, card background */
+	.ha-input {
+		height: 40px;
+		width: 100%;
+		min-width: 0;
+		padding: 0 var(--ha-space-3);
+		border: 1px solid var(--ha-color-border-neutral-quiet);
+		border-radius: var(--ha-border-radius-md);
+		background: var(--card-background-color);
+		color: var(--primary-text-color);
+		font: inherit;
+		outline: none;
+		transition: border-color 0.15s;
+	}
+	textarea.ha-input { height: auto; min-height: 96px; padding: var(--ha-space-2) var(--ha-space-3); line-height: 1.4; }
+	.ha-input:hover { border-color: var(--ha-color-border-neutral-normal); }
+	.ha-input:focus { border-color: var(--primary-color); }
+	.ha-input::placeholder { color: var(--ha-color-placeholder); }
+	.ha-input:disabled { opacity: 0.6; }
+	.ha-field-label { display: block; margin-bottom: var(--ha-space-1); font-size: var(--ha-font-size-s); font-weight: var(--ha-font-weight-medium); color: var(--secondary-text-color); }
+	.ha-field-helper { margin-top: var(--ha-space-1); font-size: var(--ha-font-size-s); color: var(--secondary-text-color); }
+
+	input[type='range'].ha-slider { width: 100%; accent-color: var(--primary-color); }
+	input[type='checkbox'].ha-checkbox { width: 18px; height: 18px; accent-color: var(--primary-color); }
 }
