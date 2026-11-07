@@ -4,12 +4,34 @@
 
 import { availability, bridgeInfo, devices as initialDevices, groups as initialGroups, states } from './devices.mjs';
 import { createHandlers } from './handlers.mjs';
+import { readFileSync } from 'node:fs';
+
+// Zigbee2MQTT's real settings schema (copied from Koenkk/zigbee2mqtt lib/util/settings.schema.json, GPL-3.0)
+const settingsSchema = JSON.parse(readFileSync(new URL('./settings.schema.json', import.meta.url), 'utf8'));
+
+/** Defaults for every schema property, like the config object a real bridge publishes */
+function defaults(schema) {
+	if (schema.properties) {
+		const out = {};
+		for (const [k, s] of Object.entries(schema.properties)) {
+			const v = defaults(s);
+			if (v !== undefined) out[k] = v;
+		}
+		return Object.keys(out).length ? out : undefined;
+	}
+	return schema.default;
+}
+const deepMerge = (a, b) => {
+	const out = { ...a };
+	for (const [k, v] of Object.entries(b ?? {})) out[k] = v && typeof v === 'object' && !Array.isArray(v) && a?.[k] && typeof a[k] === 'object' ? deepMerge(a[k], v) : v;
+	return out;
+};
 
 export function createBridge({ broadcast }) {
 	const db = {
 		devices: structuredClone(initialDevices),
 		groups: structuredClone(initialGroups),
-		info: structuredClone(bridgeInfo),
+		info: { ...structuredClone(bridgeInfo), config: deepMerge(defaults(settingsSchema), bridgeInfo.config), config_schema: settingsSchema },
 		states, // friendly name -> state (shared with the live-update ticker)
 		availability,
 		groupStates: {},
@@ -39,7 +61,7 @@ export function createBridge({ broadcast }) {
 		entity: (name) => find.device(name) ?? find.group(name)
 	};
 
-	const handlers = createHandlers({ db, publish, find, broadcast });
+	const handlers = createHandlers({ db, publish, find, broadcast, deepMerge });
 
 	/** Apply a /set payload to a device (or every member of a group), publishing the new state */
 	function applySet(entityName, payload) {
